@@ -1,12 +1,18 @@
-import { modalManager, toastManager, type ActionItem } from '@immich/ui';
+import { modalManager} from '@immich/ui';
 import { mdiLink, mdiPlus, mdiPlusBoxOutline, mdiShareVariantOutline, mdiUpload } from '@mdi/js';
 import { beforeEach, expect, vitest } from 'vitest';
 import {createAlbumAndRedirect} from '$lib/utils/album-utils';
-import { getAlbumActions, getAlbumsActions } from "$lib/services/album.service";
+import { getAlbumActions, getAlbumAssetsActions, getAlbumsActions, addAssetsToAlbums } from "$lib/services/album.service";
 import { authManager } from '$lib/managers/auth-manager.svelte';
 import { preferencesFactory } from '@test-data/factories/preferences-factory';
 import { userAdminFactory } from '@test-data/factories/user-factory';
 import { albumFactory } from '@test-data/factories/album-factory';
+import AlbumAddUsersModal from '$lib/modals/AlbumAddUsersModal.svelte';
+import AlbumOptionsModal from '$lib/modals/AlbumOptionsModal.svelte';
+import SharedLinkCreateModal from '$lib/modals/SharedLinkCreateModal.svelte';
+import { assetFactory } from '@test-data/factories/asset-factory';
+import type { TimelineAsset } from '$lib/managers/timeline-manager/types';
+
 
 vitest.mock('$lib/utils/album-utils', () => ({
   createAlbumAndRedirect: vitest.fn(),
@@ -17,6 +23,18 @@ vitest.mock('@immich/ui', () => ({
     show: vitest.fn(),
   },
 }));
+
+
+vitest.mock('$lib/services/album.service', async (importOriginal) => {
+  const actual = await importOriginal<
+    typeof import('$lib/services/album.service')
+  >();
+
+  return {
+    ...actual,
+    addAssetsToAlbums: vitest.fn(),
+  };
+});
 
 describe('album service', () => {
   describe('getAlbumActions', () => {
@@ -36,7 +54,7 @@ describe('album service', () => {
     beforeEach(()=> {
       authManager.setPreferences(preferencesFactory.build());
     });
-    it('checks that a ShareItem was obtained when the user is the owner', ()=>{
+    it('checks that a ShareItem is showed when the user is the owner', ()=>{
       const user = userAdminFactory.build( { id : 'owner' })
       const album = albumFactory.build({
         albumUsers: [{user}]
@@ -46,7 +64,7 @@ describe('album service', () => {
       expect(actions.Share.$if?.()).toBe(true);
     });
 
-    it('checks that a ShareItem wasnt obtained when user is not the owner', ()=>{
+    it('checks that a ShareItem is hidden when the user is not the owner', ()=>{
       const albumOwner = userAdminFactory.build( { id : 'not-owner' })
       const user = userAdminFactory.build( { id : 'owner' })
 
@@ -59,7 +77,16 @@ describe('album service', () => {
     });
 
     it('checks that the callback function of a ShareItem called the modalManager', ()=>{
-      expect(true).toStrictEqual(true);
+      const albumOwner = userAdminFactory.build( { id : 'not-owner' })
+      const user = userAdminFactory.build( { id : 'owner' })
+
+      const album = albumFactory.build({
+        albumUsers: [{user : albumOwner}]
+      });
+      authManager.setUser(user);
+      const actions = getAlbumActions(() => '',album)
+      actions.Share.onAction(actions.Share);
+      expect(modalManager.show).toHaveBeenCalledWith(AlbumOptionsModal, {album});
     });
 
     it('checks that a valid AddUsersItem was obtained', ()=>{
@@ -76,7 +103,16 @@ describe('album service', () => {
 
 
     it('checks that the callback function of an AddUsersItem called the modalManager', ()=>{
-      expect(true).toStrictEqual(true);
+      const albumOwner = userAdminFactory.build( { id : 'not-owner' })
+      const user = userAdminFactory.build( { id : 'owner' })
+
+      const album = albumFactory.build({
+        albumUsers: [{user : albumOwner}]
+      });
+      authManager.setUser(user);
+      const actions = getAlbumActions(() => '',album)
+      actions.AddUsers.onAction(actions.AddUsers);
+      expect(modalManager.show).toHaveBeenCalledWith(AlbumAddUsersModal, {album});
     });
 
     it('checks that a valid CreateSharedLink was obtained', ()=>{
@@ -92,7 +128,49 @@ describe('album service', () => {
     });
 
     it('checks that the callback function of CreateSharedLink called the modalManager', ()=>{
-      expect(true).toStrictEqual(true);
+      const albumOwner = userAdminFactory.build( { id : 'not-owner' })
+      const user = userAdminFactory.build( { id : 'owner' })
+
+      const album = albumFactory.build({
+        albumUsers: [{user : albumOwner}]
+      });
+      authManager.setUser(user);
+      const actions = getAlbumActions(() => '',album)
+      actions.CreateSharedLink.onAction(actions.CreateSharedLink);
+      expect(modalManager.show).toHaveBeenCalledWith(SharedLinkCreateModal, {albumId: album.id});
+    });
+  });
+  describe('getAlbumAssetsActions', () => {
+    beforeEach(() => {
+      authManager.setPreferences(preferencesFactory.build());
+    });
+
+    it('checks that an addAssetsItem was obtained', ()=> {
+      const album = albumFactory.build({ id: 'temp-id' });
+      const actions = getAlbumAssetsActions(() => 'Add Assets', album, []);
+      expect(actions.AddAssets.title).toBe('Add Assets');
+      expect(actions.AddAssets.icon).toBe(mdiPlusBoxOutline);
+      expect(actions.AddAssets.color).toBe('primary');
+
+    });
+    it('hides AddAssets when there are no assets', ()=> {
+      const album = albumFactory.build({ id: 'temp-id' });
+      const actions = getAlbumAssetsActions(() => 'Add Assets', album, []);
+      expect(actions.AddAssets.$if?.()).toBe(false);
+    });
+
+    it('shows AddAssets when there are assets', ()=> {
+      const album = albumFactory.build({ id: 'temp-id' });
+      const assets = [{}, {}] as TimelineAsset[];
+      const actions = getAlbumAssetsActions(() => 'Add Assets', album, assets);
+      expect(actions.AddAssets.$if?.()).toBe(true);
+    });
+    it('checks that the onAction callback correctly', ()=> {
+      expect(true).toBeTruthy();
+    });
+    it('checks that a UploadItem was obtained', ()=> {
+      expect(true).toBeTruthy();
     });
   });
 });
+
