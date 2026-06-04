@@ -2,7 +2,9 @@ import { modalManager} from '@immich/ui';
 import { mdiLink, mdiPlus, mdiPlusBoxOutline, mdiShareVariantOutline, mdiUpload } from '@mdi/js';
 import { beforeEach, expect, vitest } from 'vitest';
 import {createAlbumAndRedirect} from '$lib/utils/album-utils';
-import { getAlbumActions, getAlbumAssetsActions, getAlbumsActions, addAssetsToAlbums } from "$lib/services/album.service";
+import { getAlbumActions, getAlbumAssetsActions, getAlbumsActions, addAssetsToAlbums, handleDownloadAlbum,
+  handleConfirmAlbumDelete,
+} from "$lib/services/album.service";
 import { authManager } from '$lib/managers/auth-manager.svelte';
 import { preferencesFactory } from '@test-data/factories/preferences-factory';
 import { userAdminFactory } from '@test-data/factories/user-factory';
@@ -12,6 +14,8 @@ import AlbumOptionsModal from '$lib/modals/AlbumOptionsModal.svelte';
 import SharedLinkCreateModal from '$lib/modals/SharedLinkCreateModal.svelte';
 import type { TimelineAsset } from '$lib/managers/timeline-manager/types';
 import {openFileUploadDialog} from "$lib/utils/file-uploader";
+import { downloadArchive } from '$lib/utils/asset-utils';
+import { getFormatter } from '$lib/utils/i18n';
 
 
 vitest.mock('$lib/utils/album-utils', () => ({
@@ -22,10 +26,23 @@ vitest.mock('$lib/utils/file-uploader', () => ({
   openFileUploadDialog: vitest.fn(),
 }));
 
+vitest.mock('$lib/utils/i18n', () => ({
+  getFormatter: vitest.fn(),
+  getPreferredLocale: vitest.fn(),
+}));
+
 vitest.mock('@immich/ui', () => ({
   modalManager: {
     show: vitest.fn(),
+    showDialog: vitest.fn(),
   },
+  toastManager: {
+    primary: vitest.fn(),
+  },
+}));
+
+vitest.mock('$lib/utils/asset-utils', () => ({
+  downloadArchive: vitest.fn(),
 }));
 
 
@@ -186,6 +203,48 @@ describe('album service', () => {
       expect(openFileUploadDialog).toHaveBeenCalledWith({albumId: album.id});
     });
   });
+  describe('handleDownloadAlbum()', ()=>{
 
+    it('checks that downloadArchive() was called with the right args', async ()=>{
+      const album = albumFactory.build({ id: 'temp-id' , albumName: 'name'});
+      await handleDownloadAlbum(album);
+      expect(downloadArchive).toHaveBeenCalledWith(`${album.albumName}.zip`, {albumId: album.id});
+    });
+  })
+
+  describe('handleConfirmAlbumDelete()', ()=>{
+    it('checks the confirmation message when the album has a name', async ()=>{
+      const album = albumFactory.build({ id: 'temp-id' , albumName: 'name'});
+      const $t = vitest.fn().mockReturnValue('formatter');
+      vitest.mocked(getFormatter).mockResolvedValue($t);
+      await handleConfirmAlbumDelete(album);
+      expect($t).toHaveBeenNthCalledWith(1, 'album_delete_confirmation', { values: { album: album.albumName } })
+      expect($t).toHaveBeenNthCalledWith(2, 'album_delete_confirmation_description');
+    })
+    it('checks the confirmation message when the album has no name', async ()=>{
+      const album = albumFactory.build({ id: 'temp-id' , albumName: ''});
+      const $t = vitest.fn().mockReturnValue('formatter');
+      vitest.mocked(getFormatter).mockResolvedValue($t);
+      await handleConfirmAlbumDelete(album);
+      expect($t).toHaveBeenNthCalledWith(1, 'unnamed_album_delete_confirmation');
+      expect($t).toHaveBeenNthCalledWith(2, 'album_delete_confirmation_description');
+    })
+    it('checks that the modalManager.showDialog() was called', async () => {
+      const album = albumFactory.build({ id: 'temp-id' , albumName: ''});
+      const $t = vitest.fn().mockReturnValue('formatter');
+      vitest.mocked(getFormatter).mockResolvedValue($t);
+      const prompt = `${$t()} ${$t()}`;
+      await handleConfirmAlbumDelete(album);
+      expect(modalManager.showDialog).toHaveBeenCalledWith({ prompt });
+    });
+
+  });
+  describe('notifyAddToAlbum()', ()=> {
+    it('', ()=> {
+      const album = albumFactory.build({ id: 'temp-id' , albumName: ''});
+      const $t = vitest.fn().mockReturnValue('formatter');
+
+    })
+  })
 });
 
