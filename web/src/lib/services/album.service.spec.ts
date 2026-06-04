@@ -10,12 +10,16 @@ import { albumFactory } from '@test-data/factories/album-factory';
 import AlbumAddUsersModal from '$lib/modals/AlbumAddUsersModal.svelte';
 import AlbumOptionsModal from '$lib/modals/AlbumOptionsModal.svelte';
 import SharedLinkCreateModal from '$lib/modals/SharedLinkCreateModal.svelte';
-import { assetFactory } from '@test-data/factories/asset-factory';
 import type { TimelineAsset } from '$lib/managers/timeline-manager/types';
+import {openFileUploadDialog} from "$lib/utils/file-uploader";
 
 
 vitest.mock('$lib/utils/album-utils', () => ({
   createAlbumAndRedirect: vitest.fn(),
+}));
+
+vitest.mock('$lib/utils/file-uploader', () => ({
+  openFileUploadDialog: vitest.fn(),
 }));
 
 vitest.mock('@immich/ui', () => ({
@@ -165,12 +169,23 @@ describe('album service', () => {
       const actions = getAlbumAssetsActions(() => 'Add Assets', album, assets);
       expect(actions.AddAssets.$if?.()).toBe(true);
     });
-    it('checks that the onAction callback correctly', ()=> {
+    it('checks that when the onAction fn of the AddAssetsItem is executed it calls', ()=> {
       expect(true).toBeTruthy();
     });
     it('checks that a UploadItem was obtained', ()=> {
-      expect(true).toBeTruthy();
+      const album = albumFactory.build({ id: 'temp-id' });
+      const actions = getAlbumAssetsActions(() => '', album, []);
+      expect(actions.Upload.title).toBe('');
+      expect(actions.Upload.icon).toBe(mdiUpload);
+      expect(actions.Upload.description).toBe('');
+    });
+    it('checks that when the onAction fn of the UploadItem is executed it calls openFileUploadDialog', ()=> {
+      const album = albumFactory.build({ id: 'temp-id' });
+      const actions = getAlbumAssetsActions(() => '', album, []);
+      actions.Upload.onAction(actions.Upload);
+      expect(openFileUploadDialog).toHaveBeenCalledWith({albumId: album.id});
     });
   });
+
 });
 
