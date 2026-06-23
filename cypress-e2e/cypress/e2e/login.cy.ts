@@ -1,5 +1,3 @@
-import 'cypress-xpath';
-
 describe('Login', () => {
   beforeEach(() => {
     cy.visit('https://demo.immich.app');
