@@ -14,5 +14,21 @@
   "devDependencies": {
     "prettier": "^3.8.3",
     "prettier-plugin-sort-json": "^4.2.0"
-  }
+  },
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fbustios/immich.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/fbustios/immich/issues"
+  },
+  "homepage": "https://github.com/fbustios/immich#readme"
 }
