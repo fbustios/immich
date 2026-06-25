@@ -1,5 +1,6 @@
 describe('Album', () => {
   beforeEach(() => {
+    cy.viewport(1920, 1080);
     cy.visit('https://demo.immich.app');
     cy.get('input[type="email"]').type('demo@immich.app');
     cy.get('input[type="password"]').type('demo');
@@ -15,8 +16,9 @@ describe('Album', () => {
   // AL-02
   it('Verificar que el acceso al menú de álbumes compartidos se despliega correctamente', () => {
     cy.get('a[href="/albums"]').click();
-    cy.contains('label', 'Shared').click();
+    cy.contains('label', 'Shared').last().click({force : true});
     cy.contains('label', 'Shared')
+      .last()
       .invoke('attr', 'for')
       .then((id) => cy.get(`#${id}`).should('be.checked'));
   });
@@ -24,8 +26,9 @@ describe('Album', () => {
   // AL-03
   it('Verificar que el acceso al menú de álbumes propios se despliega correctamente', () => {
     cy.get('a[href="/albums"]').click();
-    cy.contains('label', 'Owned').click();
+    cy.contains('label', 'Owned').last().click({force: true});
     cy.contains('label', 'Owned')
+      .last()
       .invoke('attr', 'for')
       .then((id) => cy.get(`#${id}`).should('be.checked'));
   });

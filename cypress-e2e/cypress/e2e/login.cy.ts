@@ -1,5 +1,6 @@
 describe('Login', () => {
   beforeEach(() => {
+    cy.viewport(1920, 1080);
     cy.visit('https://demo.immich.app');
   });
 
