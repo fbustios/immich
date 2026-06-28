@@ -9,20 +9,34 @@ Cypress.on('uncaught:exception', (err) => {
 describe('Explore', () => {
   const BASE_URL = 'https://demo.immich.app';
 
+  // Imagen mínima (1x1) para stubbear miniaturas y evitar el OOM de Chrome.
+  const tinyPng = Cypress.Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+    'base64',
+  );
+
   Cypress.Commands.add('loginDemo', () => {
     cy.session('immich-demo-session', () => {
       cy.visit(BASE_URL);
-
       cy.get('input[type="email"]').type('demo@immich.app');
       cy.get('input[type="password"]').type('demo');
       cy.get('button[type="submit"]').click();
-
       cy.url().should('include', '/photos');
     });
   });
 
   beforeEach(() => {
     cy.viewport(1280, 720);
+
+    // CLAVE: sirve una imagen mínima en lugar de descargar cada foto. Va ANTES
+    // de loginDemo para que aplique también al login cacheado. Es lo que evita
+    // los errores de memoria al re-correr el suite.
+    cy.intercept('GET', '**/thumbnail*', {
+      statusCode: 200,
+      headers: { 'content-type': 'image/png' },
+      body: tinyPng,
+    });
+
     cy.loginDemo();
     cy.visit(`${BASE_URL}/photos`);
     cy.url().should('include', '/photos');
@@ -61,7 +75,6 @@ describe('Explore', () => {
 
   // EX-02
   it('Verificar que la funcionalidad de mostrar y ocultar personas funcione correctamente', () => {
-
     cy.get('a[href="/explore"]').filter(':visible').first().click();
     cy.url().should('include', '/explore');
 
@@ -364,7 +377,6 @@ describe('Explore', () => {
       .filter(':visible')
       .first()
       .click();
-
 
     cy.contains('Something went wrong').should('not.exist');
     cy.get('img').filter(':visible').should('have.length.greaterThan', 0);
