@@ -2,6 +2,8 @@ import { defineConfig } from "cypress";
 
 export default defineConfig({
   allowCypressEnv: false,
+  experimentalMemoryManagement: true,
+  numTestsKeptInMemory: 0,
 
   e2e: {
     defaultCommandTimeout: 8000,
