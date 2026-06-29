@@ -133,7 +133,8 @@ describe('Trash', () => {
         cy.get('a[href="/trash"]').first().click({force:true});
         cy.contains('button', 'Restore all').should('be.visible').click();
         cy.contains('button', 'Confirm').should('be.visible').click();
-        cy.get(`[data-asset="${assetId}"]`).should('not.exist');
+        cy.get('a[href="/photos"]').filter(':visible').first().click();
+        cy.get(`[data-asset="${assetId}"]`).should('exist');
       });
   });
 });
