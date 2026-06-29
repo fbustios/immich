@@ -12,12 +12,12 @@ describe('Share', () => {
     cy.get('a[href^="/albums/"]').first().click();
     cy.get('button[aria-label="Share"]').filter(':visible').first().click();
     cy.contains('Invite People').filter(':visible').click();
-    cy.contains('bob@immich.app').filter(':visible').click();
+    cy.contains('mich@immich.app').filter(':visible').click();
     cy.get('button[type="submit"]').filter(':visible').first().click();
     cy.contains('Editor').filter(':visible').first().click();
     cy.contains('Remove user').filter(':visible').first().click();
     cy.contains('button', 'Remove user').filter(':visible').first().click();
-    cy.contains('Bob').should('not.exist');
+    cy.contains('Mich').should('not.exist');
   });
 
   // CO-01
