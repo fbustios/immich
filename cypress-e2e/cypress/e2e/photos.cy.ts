@@ -13,7 +13,7 @@ describe('Photos', () => {
   });
   describe('downloads', () => {
     // FT-03
-    it.skip('deberia descargar la imagen seleccionada', () => {
+    it('deberia descargar la imagen seleccionada', () => {
       cy.get('[data-thumbnail-focus-container]').first().click();
       cy.get('[aria-label="Info"]').click();
       cy.get(
