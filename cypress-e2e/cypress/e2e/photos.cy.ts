@@ -11,9 +11,9 @@ describe('Photos', () => {
     cy.get('input[type="password"]').type('demo');
     cy.get('button[type="submit"]').click();
   });
-  describe.skip('downloads', () => {
+  describe('downloads', () => {
     // FT-03
-    it('deberia descargar la imagen seleccionada', () => {
+    it.skip('deberia descargar la imagen seleccionada', () => {
       cy.get('[data-thumbnail-focus-container]').first().click();
       cy.get('[aria-label="Info"]').click();
       cy.get(
@@ -31,7 +31,7 @@ describe('Photos', () => {
     });
   })
 
-  describe.skip('link sharing', () => {
+  describe('link sharing', () => {
     //FT-04
     it('deberia mostrar la imagen compartida mediante un link personalizado despues de introducir la contraseña', () => {
       cy.get('[data-thumbnail-focus-container]').first().click();
@@ -97,7 +97,7 @@ describe('Photos', () => {
     });
   });
 
-  describe.skip('editor de fotos', () => {
+  describe('editor de fotos', () => {
 
     it('al darle a restaurar cambios se deberian eliminar todos los cambios historicos', () => {
       cy.get('[data-thumbnail-focus-container]').first().click();

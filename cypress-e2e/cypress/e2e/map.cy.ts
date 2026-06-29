@@ -1,4 +1,4 @@
-describe('map', ()=>{
+describe('map', () => {
   beforeEach(() => {
     cy.clearCookies();
     cy.clearLocalStorage();
@@ -33,5 +33,12 @@ describe('map', ()=>{
     cy.get('.maplibregl-user-location-dot', { timeout: 15000 })
       .should('exist')
       .and('be.visible');
+  });
+
+  it('deberia habilitar la vista de esfera 3d', () => {
+    cy.contains('Map').click();
+    cy.get('button[aria-label="Find my location"]').click();
+    cy.get('button[title="Enable globe"]', {timeout: 15000}).click();
+    cy.get('.maplibregl-ctrl-globe-enabled').should('exist');
   });
 });
